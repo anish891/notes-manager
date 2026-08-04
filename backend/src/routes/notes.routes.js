@@ -11,7 +11,8 @@ const {
     getAllNotes,
     createNote,
     getNoteById,
-    updateNote
+    updateNote, 
+    deleteNote
 } = require("../controllers/notes.controller");
 
 router.get("/", getAllNotes);
@@ -29,5 +30,7 @@ router.patch(
     validate(updateNoteSchema),
     updateNote
 );
+
+router.delete("/:id", deleteNote);
 
 module.exports = router;

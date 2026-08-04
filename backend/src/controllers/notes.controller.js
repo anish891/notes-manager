@@ -77,9 +77,24 @@ async function updateNote(req, res, next) {
 
 }
 
+async function deleteNote(req, res, next) {
+    try {
+        const id = Number(req.params.id);
+
+        await notesService.deleteNote(id);
+
+        res.status(204).send();
+
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getAllNotes,
     createNote, 
     getNoteById,
+    updateNote,
+    deleteNote,
     updateNote
 };

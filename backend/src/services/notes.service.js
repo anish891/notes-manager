@@ -42,9 +42,22 @@ async function updateNote(id, noteData) {
 
 }
 
+async function deleteNote(id) {
+
+    await getNoteById(id);
+
+    await prisma.note.delete({
+        where: {
+            id
+        }
+    });
+
+}
+
 module.exports = {
     getAllNotes,
     createNote,
     getNoteById,
-    updateNote
+    updateNote,
+    deleteNote
 };
