@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.*
+
+# Build Output
+dist/
+build/
+coverage/
+
+# Generated Files
+src/generated/
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# AI Tooling
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
