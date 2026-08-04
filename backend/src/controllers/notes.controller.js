@@ -3,7 +3,9 @@ const notesService = require("../services/notes.service");
 async function getAllNotes(req, res, next) {
 
     try {
-        const notes = await notesService.getAllNotes();
+        const notes = await notesService.getAllNotes(
+            req.user.id
+        );
         res.json({
             success: true,
             data: notes
@@ -19,7 +21,7 @@ async function createNote(req, res, next) {
     try {
         const noteData = {
             ...req.body,
-            userId: 1
+            userId: req.user.id
         };
 
         const note = await notesService.createNote(noteData);
@@ -39,9 +41,10 @@ async function getNoteById(req, res, next) {
 
     try {
 
-        const id = Number(req.params.id);
-
-        const note = await notesService.getNoteById(id);
+        const note = await notesService.getNoteById(
+            req.params.id,
+            req.user.id
+        );
 
         res.json({
             success: true,
@@ -60,9 +63,11 @@ async function updateNote(req, res, next) {
 
     try {
 
-        const id = Number(req.params.id);
-
-        const updatedNote = await notesService.updateNote(id, req.body);
+        const updatedNote = await notesService.updateNote(
+            req.params.id,
+            req.user.id,
+            req.body
+        );
 
         res.json({
             success: true,
@@ -81,7 +86,10 @@ async function deleteNote(req, res, next) {
     try {
         const id = Number(req.params.id);
 
-        await notesService.deleteNote(id);
+        await notesService.deleteNote(
+            id,
+            req.user.id
+        );
 
         res.status(204).send();
 
@@ -92,9 +100,8 @@ async function deleteNote(req, res, next) {
 
 module.exports = {
     getAllNotes,
-    createNote, 
+    createNote,
     getNoteById,
     updateNote,
     deleteNote,
-    updateNote
 };

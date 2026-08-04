@@ -1,6 +1,8 @@
 const express = require("express");
 const logger = require("./middleware/logger");
 
+const authRouter = require("./routes/auth.routes");
+
 const healthRouter = require("./routes/health.routes");
 
 const app = express();
@@ -12,6 +14,8 @@ const errorHandler = require("./middleware/errorHandler");
 app.use(express.json());
 
 app.use(logger);
+
+app.use("/auth", authRouter);
 
 app.use("/notes", notesRouter);
 

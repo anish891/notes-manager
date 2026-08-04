@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const authenticate = require("../middleware/authenticate");
 const validate = require("../middleware/validate");
 
 const {
@@ -15,22 +15,35 @@ const {
     deleteNote
 } = require("../controllers/notes.controller");
 
-router.get("/", getAllNotes);
+router.get(
+    "/",
+    authenticate,
+    getAllNotes
+);
 
-router.get("/:id", getNoteById);
+router.get(
+    "/:id",
+    authenticate,
+    getNoteById
+);
 
 router.post(
     "/",
-    validate(createNoteSchema),
+    authenticate,
     createNote
 );
 
 router.patch(
     "/:id",
+    authenticate,
     validate(updateNoteSchema),
     updateNote
 );
 
-router.delete("/:id", deleteNote);
+router.delete(
+    "/:id",
+    authenticate,
+    deleteNote
+);
 
 module.exports = router;

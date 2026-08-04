@@ -2,8 +2,12 @@ const prisma = require("../config/prisma");
 
 const NotFoundError = require("../errors/NotFoundError");
 
-async function getAllNotes() {
-    return await prisma.note.findMany();
+async function getAllNotes(userId) {
+    return await prisma.note.findMany({
+        where: {
+            userId
+        }
+    });
 }
 
 async function createNote(noteData) {
@@ -15,10 +19,13 @@ async function createNote(noteData) {
 }
 
 
-async function getNoteById(id) {
+async function getNoteById(id, userId) {
 
-    const note = await prisma.note.findUnique({
-        where: { id }
+    const note = await prisma.note.findFirst({
+        where: {
+            id: Number(id),
+            userId
+        }
     });
 
     if (!note) {
@@ -29,28 +36,28 @@ async function getNoteById(id) {
 
 }
 
-async function updateNote(id, noteData) {
+async function updateNote(id, userId, noteData) {
 
-    await getNoteById(id);
+    await getNoteById(id, userId);
 
-    return prisma.note.update({
+    return await prisma.note.update({
         where: {
-            id
+            id: Number(id)
         },
         data: noteData
     });
 
 }
 
-async function deleteNote(id) {
+async function deleteNote(id, userId){
 
-    await getNoteById(id);
+await getNoteById(id, userId);
 
-    await prisma.note.delete({
-        where: {
-            id
-        }
-    });
+await prisma.note.delete({
+    where: {
+        id: Number(id)
+    }
+});
 
 }
 
