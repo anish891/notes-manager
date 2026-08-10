@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+
+const config = require("../config/env");
 const UnauthorizedError = require("../errors/UnauthorizedError");
 
 function authenticate(req, res, next) {
@@ -17,7 +19,7 @@ function authenticate(req, res, next) {
 
         const decoded = jwt.verify(
             token,
-            process.env.JWT_SECRET
+            config.jwtSecret
         );
 
         req.user = decoded;
@@ -31,7 +33,6 @@ function authenticate(req, res, next) {
         );
 
     }
-
 }
 
 module.exports = authenticate;

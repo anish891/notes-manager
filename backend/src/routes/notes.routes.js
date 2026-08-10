@@ -30,6 +30,7 @@ router.get(
 router.post(
     "/",
     authenticate,
+    validate(createNoteSchema),
     createNote
 );
 

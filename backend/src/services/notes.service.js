@@ -49,15 +49,15 @@ async function updateNote(id, userId, noteData) {
 
 }
 
-async function deleteNote(id, userId){
+async function deleteNote(id, userId) {
 
-await getNoteById(id, userId);
+    await getNoteById(id, userId);
 
-await prisma.note.delete({
-    where: {
-        id: Number(id)
-    }
-});
+    await prisma.note.delete({
+        where: {
+            id: Number(id)
+        }
+    });
 
 }
 
