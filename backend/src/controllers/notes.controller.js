@@ -87,7 +87,7 @@ async function deleteNote(req, res, next) {
         const id = Number(req.params.id);
 
         await notesService.deleteNote(
-            id,
+            req.params.id,
             req.user.id
         );
 
