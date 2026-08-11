@@ -2,15 +2,42 @@ const prisma = require("../config/prisma");
 
 const NotFoundError = require("../errors/NotFoundError");
 
-async function getAllNotes(userId, page = 1, limit = 10) {
+async function getAllNotes(
+    userId,
+    page = 1,
+    limit = 10,
+    search = ""
+) {
 
     const skip = (page - 1) * limit;
 
+    const searchFilter = search
+        ? {
+            OR: [
+                {
+                    title: {
+                        contains: search,
+                        mode: "insensitive"
+                    }
+                },
+                {
+                    content: {
+                        contains: search,
+                        mode: "insensitive"
+                    }
+                }
+            ]
+        }
+        : {};
+
+    const where = {
+        userId,
+        ...searchFilter
+    };
+
     const [notes, total] = await Promise.all([
         prisma.note.findMany({
-            where: {
-                userId
-            },
+            where,
             skip,
             take: limit,
             orderBy: {
@@ -19,9 +46,7 @@ async function getAllNotes(userId, page = 1, limit = 10) {
         }),
 
         prisma.note.count({
-            where: {
-                userId
-            }
+            where
         })
     ]);
 

@@ -21,15 +21,21 @@ const paginationSchema = Joi.object({
         .integer()
         .min(1)
         .max(100)
-        .default(10)
+        .default(10),
+
+    search: Joi.string()
+        .trim()
+        .max(100)
+        .allow("")
+        .default("")
 });
 
 const updateNoteSchema = Joi.object({
     title: Joi.string().min(3).max(100),
     content: Joi.string().min(1)
 })
-.min(1)
-.unknown(false);
+    .min(1)
+    .unknown(false);
 
 module.exports = {
     createNoteSchema,

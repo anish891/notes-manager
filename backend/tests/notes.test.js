@@ -712,4 +712,185 @@ test("should return the correct notes for page 2", async () => {
     expect(response.body.data[0].title).toBe("Note 1");
 });
 
+test("should search notes by title and content", async () => {
+
+    const email = `search-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Search User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const notes = [
+        {
+            title: "JavaScript Basics",
+            content: "Learning variables and functions"
+        },
+        {
+            title: "Backend Development",
+            content: "Building APIs with JavaScript"
+        },
+        {
+            title: "Database Design",
+            content: "PostgreSQL fundamentals"
+        }
+    ];
+
+    for (const note of notes) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send(note);
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    const response = await request(app)
+        .get("/notes?search=javascript")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(response.body.data).toHaveLength(2);
+
+    expect(
+        response.body.data.map(note => note.title)
+    ).toEqual(
+        expect.arrayContaining([
+            "JavaScript Basics",
+            "Backend Development"
+        ])
+    );
+
+    expect(response.body.pagination.total).toBe(2);
+
+});
+
+test("should not return another user's notes in search results", async () => {
+
+    const userA = {
+        email: `search-owner-${Date.now()}@example.com`,
+        password: "password123"
+    };
+
+    const userB = {
+        email: `search-other-${Date.now()}@example.com`,
+        password: "password123"
+    };
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Search Owner",
+            ...userA
+        });
+
+    const loginA = await request(app)
+        .post("/auth/login")
+        .send(userA);
+
+    const tokenA = loginA.body.data.token;
+
+    const noteResponse = await request(app)
+        .post("/notes")
+        .set("Authorization", `Bearer ${tokenA}`)
+        .send({
+            title: "Secret JavaScript Note",
+            content: "Private information"
+        });
+
+    expect(noteResponse.statusCode).toBe(201);
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Other User",
+            ...userB
+        });
+
+    const loginB = await request(app)
+        .post("/auth/login")
+        .send(userB);
+
+    const tokenB = loginB.body.data.token;
+
+    const searchResponse = await request(app)
+        .get("/notes?search=javascript")
+        .set("Authorization", `Bearer ${tokenB}`);
+
+    expect(searchResponse.statusCode).toBe(200);
+
+    expect(searchResponse.body.success).toBe(true);
+
+    expect(searchResponse.body.data).toHaveLength(0);
+
+    expect(searchResponse.body.pagination.total).toBe(0);
+
+});
+
+test("should treat empty search as no filter", async () => {
+
+    const email = `empty-search-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Empty Search User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    for (let i = 1; i <= 2; i++) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                title: `Note ${i}`,
+                content: `Content ${i}`
+            });
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    const response = await request(app)
+        .get("/notes?search=")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(response.body.data).toHaveLength(2);
+
+    expect(response.body.pagination.total).toBe(2);
+
+});
+
 });
