@@ -27,7 +27,15 @@ const paginationSchema = Joi.object({
         .trim()
         .max(100)
         .allow("")
-        .default("")
+        .default(""),
+
+    sortBy: Joi.string()
+        .valid("createdAt", "updatedAt", "title")
+        .default("createdAt"),
+
+    order: Joi.string()
+        .valid("asc", "desc")
+        .default("desc")
 });
 
 const updateNoteSchema = Joi.object({

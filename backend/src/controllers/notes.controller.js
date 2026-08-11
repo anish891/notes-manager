@@ -4,13 +4,21 @@ async function getAllNotes(req, res, next) {
 
     try {
 
-        const { page, limit, search } = req.validatedQuery;
+        const {
+            page,
+            limit,
+            search,
+            sortBy,
+            order
+        } = req.validatedQuery;
 
         const result = await notesService.getAllNotes(
             req.user.id,
             page,
             limit,
-            search
+            search,
+            sortBy,
+            order
         );
 
         res.json({

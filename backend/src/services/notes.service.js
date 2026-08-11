@@ -6,7 +6,9 @@ async function getAllNotes(
     userId,
     page = 1,
     limit = 10,
-    search = ""
+    search = "",
+    sortBy = "createdAt",
+    order = "desc"
 ) {
 
     const skip = (page - 1) * limit;
@@ -41,7 +43,7 @@ async function getAllNotes(
             skip,
             take: limit,
             orderBy: {
-                createdAt: "desc"
+                [sortBy]: order
             }
         }),
 

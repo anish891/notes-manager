@@ -893,4 +893,178 @@ test("should treat empty search as no filter", async () => {
 
 });
 
+test("should sort notes by title", async () => {
+
+    const email = `sorting-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Sorting User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const titles = [
+        "Zebra",
+        "Apple",
+        "Monkey"
+    ];
+
+    for (const title of titles) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                title,
+                content: "Test content"
+            });
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    const response = await request(app)
+        .get("/notes?sortBy=title&order=asc")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(
+        response.body.data.map(note => note.title)
+    ).toEqual([
+        "Apple",
+        "Monkey",
+        "Zebra"
+    ]);
+
+});
+
+test("should sort notes by title descending", async () => {
+
+    const email = `sorting-desc-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Sorting Desc User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    for (const title of ["Apple", "Monkey", "Zebra"]) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                title,
+                content: "Test content"
+            });
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    const response = await request(app)
+        .get("/notes?sortBy=title&order=desc")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(
+        response.body.data.map(note => note.title)
+    ).toEqual([
+        "Zebra",
+        "Monkey",
+        "Apple"
+    ]);
+
+});
+
+test("should reject invalid sort field", async () => {
+
+    const email = `invalid-sort-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Invalid Sort User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const response = await request(app)
+        .get("/notes?sortBy=password")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body.success).toBe(false);
+
+});
+
+test("should reject invalid sort order", async () => {
+
+    const email = `invalid-order-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Invalid Order User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const response = await request(app)
+        .get("/notes?order=random")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body.success).toBe(false);
+
+});
+
 });
