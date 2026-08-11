@@ -1,6 +1,11 @@
 const request = require("supertest");
 const app = require("../src/app");
 const prisma = require("../src/config/prisma");
+const { loginLimiter } = require("../src/middleware/rateLimiter");
+
+afterEach(async () => {
+    await loginLimiter.resetKey("::ffff:127.0.0.1");
+});
 
 afterAll(async () => {
     await prisma.$disconnect();
@@ -1065,6 +1070,59 @@ test("should reject invalid sort order", async () => {
 
     expect(response.body.success).toBe(false);
 
+});
+
+test("should rate limit excessive login attempts", async () => {
+
+    process.env.TEST_RATE_LIMITING = "true";
+
+    try {
+
+        const email = `rate-limit-${Date.now()}@example.com`;
+        const password = "password123";
+
+        const registerResponse = await request(app)
+            .post("/auth/register")
+            .send({
+                name: "Rate Limit User",
+                email,
+                password
+            });
+
+        expect(registerResponse.statusCode).toBe(201);
+
+        for (let i = 0; i < 5; i++) {
+
+            const response = await request(app)
+                .post("/auth/login")
+                .send({
+                    email,
+                    password: "wrong-password"
+                });
+
+            expect(response.statusCode).toBe(401);
+        }
+
+        const response = await request(app)
+            .post("/auth/login")
+            .send({
+                email,
+                password: "wrong-password"
+            });
+
+        expect(response.statusCode).toBe(429);
+
+        expect(response.body.success).toBe(false);
+
+        expect(response.body.message).toBe(
+            "Too many login attempts. Please try again later."
+        );
+
+    } finally {
+
+        process.env.TEST_RATE_LIMITING = "false";
+
+    }
 });
 
 });
