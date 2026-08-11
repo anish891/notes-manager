@@ -187,4 +187,29 @@ test("should reject registration without name", async () => {
 
 });
 
+test("should handle concurrent registration with the same email", async () => {
+
+    const email = `concurrent-${Date.now()}@example.com`;
+
+    const requests = Array.from({ length: 2 }, () =>
+        request(app)
+            .post("/auth/register")
+            .send({
+                name: "Concurrent User",
+                email,
+                password: "password123"
+            })
+    );
+
+    const [firstResponse, secondResponse] = await Promise.all(requests);
+
+    const statuses = [
+        firstResponse.statusCode,
+        secondResponse.statusCode
+    ].sort();
+
+    expect(statuses).toEqual([201, 409]);
+
+});
+
 });

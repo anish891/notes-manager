@@ -2,11 +2,13 @@ const prisma = require("../config/prisma");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config/env");
+const { Prisma } = require("@prisma/client");
 
 const ConflictError = require("../errors/ConflictError");
 const UnauthorizedError = require("../errors/UnauthorizedError");
 
 async function register(userData) {
+
     const existingUser = await prisma.user.findUnique({
         where: {
             email: userData.email
@@ -17,23 +19,39 @@ async function register(userData) {
         throw new ConflictError("Email already registered");
     }
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(
+        userData.password,
+        10
+    );
 
-    const newUser = {
-        ...userData,
-        password: hashedPassword
-    };
+    try {
 
-    const user = await prisma.user.create({
-        data: newUser,
-        select: {
-            id: true,
-            name: true,
-            email: true
+        const user = await prisma.user.create({
+            data: {
+                name: userData.name,
+                email: userData.email,
+                password: hashedPassword
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true
+            }
+        });
+
+        return user;
+
+    } catch (err) {
+
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            err.code === "P2002"
+        ) {
+            throw new ConflictError("Email already registered");
         }
-    });
 
-    return user;
+        throw err;
+    }
 }
 
 async function login(loginData) {

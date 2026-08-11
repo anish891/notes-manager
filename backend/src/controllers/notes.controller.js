@@ -108,7 +108,6 @@ async function updateNote(req, res, next) {
 
 async function deleteNote(req, res, next) {
     try {
-        const id = Number(req.params.id);
 
         await notesService.deleteNote(
             req.params.id,
