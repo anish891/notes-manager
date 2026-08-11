@@ -5,7 +5,11 @@ const authRouter = require("./routes/auth.routes");
 
 const healthRouter = require("./routes/health.routes");
 
+const helmet = require("helmet");
+
 const app = express();
+
+app.use(helmet());
 
 const notesRouter = require("./routes/notes.routes");
 
