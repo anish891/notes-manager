@@ -15,7 +15,7 @@ const notesRouter = require("./routes/notes.routes");
 
 const errorHandler = require("./middleware/errorHandler");
 
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 
 app.use(logger);
 

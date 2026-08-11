@@ -34,4 +34,17 @@ describe("GET /health", () => {
 
 });
 
+test("should reject oversized JSON payloads", async () => {
+
+    const largePayload = {
+        data: "x".repeat(101 * 1024)
+    };
+
+    const response = await request(app)
+        .post("/auth/register")
+        .send(largePayload);
+
+    expect(response.statusCode).toBe(413);
+});
+
 });
