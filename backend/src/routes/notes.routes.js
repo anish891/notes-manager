@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 const authenticate = require("../middleware/authenticate");
 const validate = require("../middleware/validate");
+const validateQuery = require("../middleware/validateQuery");
 
 const {
-    createNoteSchema, updateNoteSchema
+    createNoteSchema, updateNoteSchema, paginationSchema
 } = require("../validations/note.validation");
 
 const {
@@ -18,6 +19,7 @@ const {
 router.get(
     "/",
     authenticate,
+    validateQuery(paginationSchema),
     getAllNotes
 );
 

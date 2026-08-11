@@ -11,6 +11,19 @@ const createNoteSchema = Joi.object({
         .required()
 });
 
+const paginationSchema = Joi.object({
+    page: Joi.number()
+        .integer()
+        .min(1)
+        .default(1),
+
+    limit: Joi.number()
+        .integer()
+        .min(1)
+        .max(100)
+        .default(10)
+});
+
 const updateNoteSchema = Joi.object({
     title: Joi.string().min(3).max(100),
     content: Joi.string().min(1)
@@ -20,5 +33,6 @@ const updateNoteSchema = Joi.object({
 
 module.exports = {
     createNoteSchema,
-    updateNoteSchema
+    updateNoteSchema,
+    paginationSchema
 };

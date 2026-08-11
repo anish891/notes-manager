@@ -3,15 +3,30 @@ const notesService = require("../services/notes.service");
 async function getAllNotes(req, res, next) {
 
     try {
-        const notes = await notesService.getAllNotes(
-            req.user.id
+
+        const { page, limit } = req.validatedQuery;
+
+        const result = await notesService.getAllNotes(
+            req.user.id,
+            page,
+            limit
         );
+
         res.json({
             success: true,
-            data: notes
+            data: result.notes,
+            pagination: {
+                page: result.page,
+                limit: result.limit,
+                total: result.total,
+                totalPages: result.totalPages
+            }
         });
+
     } catch (err) {
+
         return next(err);
+
     }
 
 }

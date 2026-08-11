@@ -2,6 +2,10 @@ const request = require("supertest");
 const app = require("../src/app");
 const prisma = require("../src/config/prisma");
 
+afterAll(async () => {
+    await prisma.$disconnect();
+});
+
 
 describe("Notes authentication", () => {
 
@@ -493,6 +497,219 @@ test("should reject note without content", async () => {
 
     expect(response.body.success).toBe(false);
 
+});
+
+test("should paginate notes", async () => {
+
+    const email = `pagination-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Pagination User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    // Create 3 notes
+    for (let i = 1; i <= 3; i++) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                title: `Note ${i}`,
+                content: `Content ${i}`
+            });
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    // Request first page with 2 notes
+    const response = await request(app)
+        .get("/notes?page=1&limit=2")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(response.body.data).toHaveLength(2);
+
+    expect(response.body.pagination).toEqual({
+        page: 1,
+        limit: 2,
+        total: 3,
+        totalPages: 2
+    });
+
+});
+
+test("should reject invalid page number", async () => {
+
+    const email = `invalid-page-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Pagination User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const response = await request(app)
+        .get("/notes?page=0")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.success).toBe(false);
+
+});
+
+test("should reject limit greater than 100", async () => {
+
+    const email = `large-limit-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Pagination User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const response = await request(app)
+        .get("/notes?limit=101")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.success).toBe(false);
+
+});
+
+
+test("should use default pagination values", async () => {
+
+    const email = `default-pagination-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Pagination User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    const response = await request(app)
+        .get("/notes")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(response.body.pagination).toEqual({
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0
+    });
+
+    expect(response.body.data).toHaveLength(0);
+
+});
+
+test("should return the correct notes for page 2", async () => {
+
+    const email = `page-two-${Date.now()}@example.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/auth/register")
+        .send({
+            name: "Page Two User",
+            email,
+            password
+        });
+
+    const loginResponse = await request(app)
+        .post("/auth/login")
+        .send({
+            email,
+            password
+        });
+
+    const token = loginResponse.body.data.token;
+
+    for (let i = 1; i <= 3; i++) {
+
+        const response = await request(app)
+            .post("/notes")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                title: `Note ${i}`,
+                content: `Content ${i}`
+            });
+
+        expect(response.statusCode).toBe(201);
+    }
+
+    const response = await request(app)
+        .get("/notes?page=2&limit=2")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.data).toHaveLength(1);
+
+    expect(response.body.pagination).toEqual({
+        page: 2,
+        limit: 2,
+        total: 3,
+        totalPages: 2
+    });
+
+    expect(response.body.data[0].title).toBe("Note 1");
 });
 
 });
