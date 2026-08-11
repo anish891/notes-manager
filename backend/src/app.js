@@ -1,6 +1,8 @@
 const express = require("express");
 const logger = require("./middleware/logger");
 
+const notFound = require("./middleware/notFound");
+
 const authRouter = require("./routes/auth.routes");
 
 const healthRouter = require("./routes/health.routes");
@@ -32,6 +34,7 @@ app.get("/", (req, res) => {
     });
 });
 
+app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;

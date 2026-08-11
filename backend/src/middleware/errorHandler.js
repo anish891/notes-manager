@@ -1,14 +1,27 @@
+const AppError = require("../errors/AppError");
+
 function errorHandler(err, req, res, next) {
 
     console.error(err);
 
-    const statusCode = err.statusCode || 500;
+    if (err instanceof AppError) {
+        return res.status(err.statusCode).json({
+            success: false,
+            message: err.message
+        });
+    }
 
-    res.status(statusCode).json({
+    if (err.status === 413) {
+        return res.status(413).json({
+            success: false,
+            message: "Request body too large"
+        });
+    }
+
+    return res.status(500).json({
         success: false,
-        message: err.message || "Internal Server Error"
+        message: "Internal Server Error"
     });
-
 }
 
 module.exports = errorHandler;

@@ -47,4 +47,18 @@ test("should reject oversized JSON payloads", async () => {
     expect(response.statusCode).toBe(413);
 });
 
+test("should return consistent 404 response for unknown routes", async () => {
+
+    const response = await request(app)
+        .get("/does-not-exist");
+
+    expect(response.statusCode).toBe(404);
+
+    expect(response.body).toEqual({
+        success: false,
+        message: "Route not found"
+    });
+
+});
+
 });
